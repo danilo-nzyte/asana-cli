@@ -1,0 +1,18 @@
+# Binary
+asana-cli
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test
+coverage.out
+
+# Config (secrets)
+config.json
+token.json
