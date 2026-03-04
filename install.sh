@@ -1,105 +1,75 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "==> Building asana-cli..."
-go build -o asana-cli .
-
-echo "==> Installing binary..."
-go install .
-
-echo "==> Installing Claude Code skill..."
+REPO="danilodrobac/asana-cli"
+INSTALL_DIR="/usr/local/bin"
 SKILL_DIR="$HOME/.claude/skills/asana"
+
+# Detect OS and architecture
+OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+ARCH="$(uname -m)"
+
+case "$ARCH" in
+    x86_64)  ARCH="amd64" ;;
+    aarch64) ARCH="arm64" ;;
+    arm64)   ARCH="arm64" ;;
+    *)
+        echo "Unsupported architecture: $ARCH"
+        exit 1
+        ;;
+esac
+
+case "$OS" in
+    darwin|linux) ;;
+    *)
+        echo "Unsupported OS: $OS (use install.ps1 for Windows)"
+        exit 1
+        ;;
+esac
+
+ARCHIVE="asana-cli_${OS}_${ARCH}.tar.gz"
+
+# Get latest release tag
+echo "==> Fetching latest release..."
+TAG=$(curl -sSf "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name"' | cut -d'"' -f4)
+if [ -z "$TAG" ]; then
+    echo "Error: could not determine latest release."
+    exit 1
+fi
+echo "    Latest release: $TAG"
+
+# Download and extract
+URL="https://github.com/${REPO}/releases/download/${TAG}/${ARCHIVE}"
+TMPDIR="$(mktemp -d)"
+trap 'rm -rf "$TMPDIR"' EXIT
+
+echo "==> Downloading ${ARCHIVE}..."
+curl -sSfL "$URL" -o "$TMPDIR/$ARCHIVE"
+
+echo "==> Extracting..."
+tar -xzf "$TMPDIR/$ARCHIVE" -C "$TMPDIR"
+
+echo "==> Installing to $INSTALL_DIR (may require sudo)..."
+if [ -w "$INSTALL_DIR" ]; then
+    mv "$TMPDIR/asana-cli" "$INSTALL_DIR/asana-cli"
+else
+    sudo mv "$TMPDIR/asana-cli" "$INSTALL_DIR/asana-cli"
+fi
+chmod +x "$INSTALL_DIR/asana-cli"
+
+# Install Claude Code skill
+echo "==> Installing Claude Code skill..."
 mkdir -p "$SKILL_DIR"
-cp skill/SKILL.md "$SKILL_DIR/SKILL.md"
+SKILL_URL="https://raw.githubusercontent.com/${REPO}/${TAG}/skill/SKILL.md"
+curl -sSfL "$SKILL_URL" -o "$SKILL_DIR/SKILL.md"
 echo "    Skill installed to $SKILL_DIR"
 
 echo ""
-echo "==> Setup complete!"
+echo "==> Installed asana-cli $TAG to $INSTALL_DIR/asana-cli"
 echo ""
-echo "============================================"
-echo "  AUTHENTICATION SETUP"
-echo "============================================"
+echo "Next steps:"
+echo "  1. Set environment variables (ASANA_CLIENT_ID, ASANA_CLIENT_SECRET, ASANA_WORKSPACE_ID)"
+echo "  2. Run: asana-cli auth login"
+echo "  3. Verify: asana-cli auth status"
 echo ""
-echo "You need three values (shared per team — only one person creates the OAuth app):"
-echo ""
-echo "  ASANA_CLIENT_ID      — from your Asana OAuth app"
-echo "  ASANA_CLIENT_SECRET   — from your Asana OAuth app"
-echo "  ASANA_WORKSPACE_ID    — your Asana workspace GID"
-echo ""
-echo "To create the OAuth app (only needed once per team):"
-echo "  1. Go to https://app.asana.com/0/developer-console"
-echo "  2. Create a new app"
-echo "  3. Under OAuth > Permission scopes, toggle 'Full permissions'"
-echo "  4. Set redirect URI to http://localhost:8931/callback"
-echo "  5. Copy Client ID and Client Secret"
-echo "  6. Share these with your team securely"
-echo ""
-echo "To find your Workspace GID:"
-echo "  Open any Asana project in the browser — the URL looks like:"
-echo "  https://app.asana.com/0/<workspace_gid>/..."
-echo ""
-echo "--------------------------------------------"
-echo "  macOS / Linux — add to your shell config:"
-echo "--------------------------------------------"
-echo ""
-
-# Detect shell
-CURRENT_SHELL="$(basename "${SHELL:-bash}")"
-
-if [ "$CURRENT_SHELL" = "fish" ]; then
-    SHELL_CONFIG="~/.config/fish/config.fish"
-    echo "  Detected shell: fish"
-    echo "  Add these lines to $SHELL_CONFIG:"
-    echo ""
-    echo "    set -gx ASANA_CLIENT_ID \"your-client-id\""
-    echo "    set -gx ASANA_CLIENT_SECRET \"your-client-secret\""
-    echo "    set -gx ASANA_WORKSPACE_ID \"your-workspace-gid\""
-    echo ""
-    echo "  Then reload: source $SHELL_CONFIG"
-elif [ "$CURRENT_SHELL" = "zsh" ]; then
-    SHELL_CONFIG="~/.zshrc"
-    echo "  Detected shell: zsh"
-    echo "  Add these lines to $SHELL_CONFIG:"
-    echo ""
-    echo "    export ASANA_CLIENT_ID=\"your-client-id\""
-    echo "    export ASANA_CLIENT_SECRET=\"your-client-secret\""
-    echo "    export ASANA_WORKSPACE_ID=\"your-workspace-gid\""
-    echo ""
-    echo "  Then reload: source $SHELL_CONFIG"
-else
-    SHELL_CONFIG="~/.bashrc"
-    echo "  Detected shell: bash"
-    echo "  Add these lines to $SHELL_CONFIG:"
-    echo ""
-    echo "    export ASANA_CLIENT_ID=\"your-client-id\""
-    echo "    export ASANA_CLIENT_SECRET=\"your-client-secret\""
-    echo "    export ASANA_WORKSPACE_ID=\"your-workspace-gid\""
-    echo ""
-    echo "  Then reload: source $SHELL_CONFIG"
-fi
-
-echo ""
-echo "--------------------------------------------"
-echo "  Windows (PowerShell) — set permanently:"
-echo "--------------------------------------------"
-echo ""
-echo "  Run these in PowerShell (sets system-wide for your user):"
-echo ""
-echo "    [System.Environment]::SetEnvironmentVariable('ASANA_CLIENT_ID', 'your-client-id', 'User')"
-echo "    [System.Environment]::SetEnvironmentVariable('ASANA_CLIENT_SECRET', 'your-client-secret', 'User')"
-echo "    [System.Environment]::SetEnvironmentVariable('ASANA_WORKSPACE_ID', 'your-workspace-gid', 'User')"
-echo ""
-echo "  Then restart your terminal."
-echo ""
-echo "============================================"
-echo "  FINAL STEP"
-echo "============================================"
-echo ""
-echo "  After setting env vars, run:"
-echo ""
-echo "    asana-cli auth login"
-echo ""
-echo "  This opens your browser to authorize. Then verify with:"
-echo ""
-echo "    asana-cli auth status"
-echo ""
+echo "See https://github.com/${REPO}#authentication-setup for details."

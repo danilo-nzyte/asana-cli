@@ -4,13 +4,33 @@ CLI for managing Asana resources — projects, tasks, portfolios, custom fields,
 
 ## Quick Start
 
+### macOS / Linux
+
 ```bash
-git clone <this-repo>
-cd asana-cli
-./install.sh
+curl -sSfL https://raw.githubusercontent.com/danilodrobac/asana-cli/main/install.sh | bash
 ```
 
-This builds the binary, installs it to your Go bin, and installs the Claude Code skill.
+### Windows (PowerShell)
+
+```powershell
+irm https://raw.githubusercontent.com/danilodrobac/asana-cli/main/install.ps1 | iex
+```
+
+### Update
+
+```bash
+asana-cli update
+```
+
+### From source (developers)
+
+Requires Go installed:
+
+```bash
+git clone https://github.com/danilodrobac/asana-cli.git
+cd asana-cli
+make install
+```
 
 ## Authentication Setup
 
@@ -115,6 +135,8 @@ All commands output JSON:
 | `attachment` | `upload`, `get`, `list`, `delete` |
 | `comment` | `create`, `get`, `list`, `update`, `delete` |
 | `dependency` | `add`, `remove`, `list` |
+| `version` | *(prints version)* |
+| `update` | *(self-update to latest release)* |
 
 ### Examples
 

@@ -3,8 +3,11 @@
 BINARY=asana-cli
 SKILL_DIR=$(HOME)/.claude/skills/asana
 
+VERSION ?= dev
+LDFLAGS = -X github.com/danilodrobac/asana-cli/cmd.Version=$(VERSION)
+
 build:
-	go build -o $(BINARY) .
+	go build -ldflags "$(LDFLAGS)" -o $(BINARY) .
 
 install: build skill
 	go install .
