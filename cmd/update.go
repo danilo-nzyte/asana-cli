@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const repo = "danilodrobac/asana-cli"
+const repo = "danilo-nzyte/asana-cli"
 
 var updateCmd = &cobra.Command{
 	Use:   "update",

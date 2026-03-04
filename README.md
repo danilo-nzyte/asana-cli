@@ -7,13 +7,13 @@ CLI for managing Asana resources — projects, tasks, portfolios, custom fields,
 ### macOS / Linux
 
 ```bash
-curl -sSfL https://raw.githubusercontent.com/danilodrobac/asana-cli/main/install.sh | bash
+curl -sSfL https://raw.githubusercontent.com/danilo-nzyte/asana-cli/main/install.sh | bash
 ```
 
 ### Windows (PowerShell)
 
 ```powershell
-irm https://raw.githubusercontent.com/danilodrobac/asana-cli/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/danilo-nzyte/asana-cli/main/install.ps1 | iex
 ```
 
 ### Update
@@ -27,7 +27,7 @@ asana-cli update
 Requires Go installed:
 
 ```bash
-git clone https://github.com/danilodrobac/asana-cli.git
+git clone https://github.com/danilo-nzyte/asana-cli.git
 cd asana-cli
 make install
 ```

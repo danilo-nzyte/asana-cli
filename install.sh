@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="danilodrobac/asana-cli"
+REPO="danilo-nzyte/asana-cli"
 INSTALL_DIR="/usr/local/bin"
 SKILL_DIR="$HOME/.claude/skills/asana"
 

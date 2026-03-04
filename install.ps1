@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$Repo = "danilodrobac/asana-cli"
+$Repo = "danilo-nzyte/asana-cli"
 $InstallDir = "$HOME\.local\bin"
 $SkillDir = "$HOME\.claude\skills\asana"
 
