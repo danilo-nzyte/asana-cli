@@ -44,63 +44,62 @@ make install
 6. Copy the **Client ID** and **Client Secret**
 7. Share these with your team (they identify the app, not the user)
 
-### 2. Find Your Workspace GID
+### 2. Log In
 
-Open any Asana project in the browser. The URL looks like:
+Run `auth login` with your OAuth credentials. You only need to provide `--client-id` and `--client-secret` once — they're saved to `~/.config/asana-cli/config.json` and reused for all future logins and automatic token refreshes.
+
+```bash
+asana-cli auth login --client-id "your-client-id" --client-secret "your-client-secret"
 ```
-https://app.asana.com/0/1234567890/...
-                        ^^^^^^^^^^
-                        this is your workspace GID
+
+This opens your browser for Asana authorization. Each team member runs this with the same client ID/secret but authorizes with their own Asana account.
+
+After the first login, just run:
+
+```bash
+asana-cli auth login
 ```
 
-### 3. Set Environment Variables
+Verify it worked:
 
-You need three env vars set permanently in your shell. Everyone on the team uses the same Client ID and Secret.
+```bash
+asana-cli auth status
+```
+
+### 3. Set Workspace ID
+
+The workspace ID is needed for some commands (task search, custom field list, portfolio create). Set it in your shell config:
 
 #### macOS — fish shell
 
 Add to `~/.config/fish/config.fish`:
 
 ```fish
-set -gx ASANA_CLIENT_ID "your-client-id"
-set -gx ASANA_CLIENT_SECRET "your-client-secret"
 set -gx ASANA_WORKSPACE_ID "your-workspace-gid"
 ```
-
-Then: `source ~/.config/fish/config.fish`
 
 #### macOS / Linux — bash or zsh
 
 Add to `~/.bashrc` or `~/.zshrc`:
 
 ```bash
-export ASANA_CLIENT_ID="your-client-id"
-export ASANA_CLIENT_SECRET="your-client-secret"
 export ASANA_WORKSPACE_ID="your-workspace-gid"
 ```
 
-Then: `source ~/.bashrc` (or `~/.zshrc`)
-
 #### Windows — PowerShell
 
-Run these commands (sets permanently for your user account):
-
 ```powershell
-[System.Environment]::SetEnvironmentVariable('ASANA_CLIENT_ID', 'your-client-id', 'User')
-[System.Environment]::SetEnvironmentVariable('ASANA_CLIENT_SECRET', 'your-client-secret', 'User')
 [System.Environment]::SetEnvironmentVariable('ASANA_WORKSPACE_ID', 'your-workspace-gid', 'User')
 ```
 
 Then restart your terminal.
 
-### 4. Log In
-
-```bash
-asana-cli auth login    # opens browser for OAuth authorization
-asana-cli auth status   # verify it worked
+To find your workspace GID, open any Asana project in the browser. The URL looks like:
 ```
-
-Each person runs `auth login` separately — you each get your own access tokens.
+https://app.asana.com/0/1234567890/...
+                        ^^^^^^^^^^
+                        this is your workspace GID
+```
 
 ### Alternative: Personal Access Token
 
@@ -111,6 +110,17 @@ export ASANA_ACCESS_TOKEN="your-pat"
 ```
 
 This skips the OAuth flow entirely.
+
+### Alternative: Environment Variables for OAuth
+
+You can also set OAuth credentials as environment variables instead of using `--client-id`/`--client-secret` flags. The CLI checks the config file first, then falls back to env vars.
+
+```bash
+export ASANA_CLIENT_ID="your-client-id"
+export ASANA_CLIENT_SECRET="your-client-secret"
+```
+
+Note: credentials provided via env vars are automatically saved to the config file on first `auth login`, so token refresh works even if the env vars are not set in future sessions.
 
 ## Usage
 
@@ -130,6 +140,7 @@ All commands output JSON:
 | `auth` | `login`, `logout`, `status` |
 | `project` | `create`, `get`, `list`, `update`, `delete` |
 | `task` | `create`, `get`, `list`, `update`, `delete`, `search` |
+| `section` | `create`, `get`, `list`, `update`, `delete`, `add-task` |
 | `portfolio` | `create`, `get`, `list`, `update`, `delete`, `add-item`, `remove-item` |
 | `custom-field` | `create`, `get`, `list`, `update`, `delete` |
 | `attachment` | `upload`, `get`, `list`, `delete` |

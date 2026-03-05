@@ -7,7 +7,7 @@ description: Manage Asana resources (projects, tasks, portfolios, custom fields,
 ## Prerequisites
 
 Authentication must be set up before use:
-- **OAuth (recommended):** Run `asana-cli auth login` to authenticate via browser
+- **OAuth (recommended):** Run `asana-cli auth login --client-id <ID> --client-secret <SECRET>` on first use (credentials are saved), then just `asana-cli auth login` for future logins. Tokens refresh automatically.
 - **PAT fallback:** Set `ASANA_ACCESS_TOKEN` environment variable
 - **Workspace:** Set `ASANA_WORKSPACE_ID` environment variable or use `--workspace` flag
 

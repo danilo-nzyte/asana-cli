@@ -19,11 +19,36 @@ var authCmd = &cobra.Command{
 var authLoginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Authenticate with Asana via OAuth",
+	Long: `Authenticate with Asana via OAuth browser flow.
+
+On first use, provide your OAuth app credentials:
+  asana-cli auth login --client-id <ID> --client-secret <SECRET>
+
+Credentials are saved to ~/.config/asana-cli/config.json so you only
+need to provide them once. Subsequent logins and token refreshes will
+use the stored credentials automatically.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		clientID, _ := cmd.Flags().GetString("client-id")
+		clientSecret, _ := cmd.Flags().GetString("client-secret")
+
+		// If flags provided, save them to config file
+		if clientID != "" && clientSecret != "" {
+			if err := auth.SaveConfig(&auth.Config{
+				ClientID:     clientID,
+				ClientSecret: clientSecret,
+			}); err != nil {
+				output.Fail("config_save", err.Error(), client.ExitAuthError)
+			}
+		}
+
 		cfg, err := auth.LoadConfig()
 		if err != nil {
 			output.Fail("auth_config", err.Error(), client.ExitAuthError)
 		}
+
+		// If credentials came from env vars, persist them to config file
+		// so token refresh works regardless of environment
+		auth.SaveConfig(cfg)
 
 		token, err := auth.RunOAuthFlow(cfg)
 		if err != nil {
@@ -126,6 +151,8 @@ var authStatusCmd = &cobra.Command{
 }
 
 func init() {
+	authLoginCmd.Flags().String("client-id", "", "OAuth client ID (saved to config file)")
+	authLoginCmd.Flags().String("client-secret", "", "OAuth client secret (saved to config file)")
 	authCmd.AddCommand(authLoginCmd)
 	authCmd.AddCommand(authLogoutCmd)
 	authCmd.AddCommand(authStatusCmd)

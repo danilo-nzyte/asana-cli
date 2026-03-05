@@ -45,34 +45,48 @@ func ConfigPath() string {
 	return filepath.Join(configDir(), "config.json")
 }
 
-// LoadConfig loads OAuth client credentials from config file or env vars.
+// LoadConfig loads OAuth client credentials from config file, then env vars.
 func LoadConfig() (*Config, error) {
-	cfg := &Config{
-		ClientID:     os.Getenv("ASANA_CLIENT_ID"),
-		ClientSecret: os.Getenv("ASANA_CLIENT_SECRET"),
-	}
+	cfg := &Config{}
 
-	// Try config file if env vars not set
-	if cfg.ClientID == "" || cfg.ClientSecret == "" {
-		data, err := os.ReadFile(ConfigPath())
-		if err == nil {
-			var fileCfg Config
-			if json.Unmarshal(data, &fileCfg) == nil {
-				if cfg.ClientID == "" {
-					cfg.ClientID = fileCfg.ClientID
-				}
-				if cfg.ClientSecret == "" {
-					cfg.ClientSecret = fileCfg.ClientSecret
-				}
-			}
+	// Try config file first (most reliable, persists across sessions)
+	data, err := os.ReadFile(ConfigPath())
+	if err == nil {
+		var fileCfg Config
+		if json.Unmarshal(data, &fileCfg) == nil {
+			cfg.ClientID = fileCfg.ClientID
+			cfg.ClientSecret = fileCfg.ClientSecret
 		}
 	}
 
+	// Fall back to env vars
+	if cfg.ClientID == "" {
+		cfg.ClientID = os.Getenv("ASANA_CLIENT_ID")
+	}
+	if cfg.ClientSecret == "" {
+		cfg.ClientSecret = os.Getenv("ASANA_CLIENT_SECRET")
+	}
+
 	if cfg.ClientID == "" || cfg.ClientSecret == "" {
-		return nil, fmt.Errorf("OAuth credentials not configured. Set ASANA_CLIENT_ID and ASANA_CLIENT_SECRET env vars, or create %s", ConfigPath())
+		return nil, fmt.Errorf("OAuth credentials not configured. Run 'asana-cli auth login --client-id <ID> --client-secret <SECRET>', or create %s", ConfigPath())
 	}
 
 	return cfg, nil
+}
+
+// SaveConfig writes OAuth client credentials to disk.
+func SaveConfig(cfg *Config) error {
+	dir := configDir()
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return fmt.Errorf("failed to create config dir: %w", err)
+	}
+
+	data, err := json.MarshalIndent(cfg, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal config: %w", err)
+	}
+
+	return os.WriteFile(ConfigPath(), data, 0600)
 }
 
 // SaveToken writes token data to disk.
