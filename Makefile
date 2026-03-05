@@ -9,8 +9,8 @@ LDFLAGS = -X github.com/danilodrobac/asana-cli/cmd.Version=$(VERSION)
 build:
 	go build -ldflags "$(LDFLAGS)" -o $(BINARY) .
 
-install: build skill
-	go install .
+install: skill
+	go install -ldflags "$(LDFLAGS)" .
 
 test:
 	go test ./...
