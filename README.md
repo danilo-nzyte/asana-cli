@@ -46,19 +46,13 @@ make install
 
 ### 2. Log In
 
-Run `auth login` with your OAuth credentials. You only need to provide `--client-id` and `--client-secret` once — they're saved to `~/.config/asana-cli/config.json` and reused for all future logins and automatic token refreshes.
+Run `auth login` with your OAuth credentials. This is a one-time setup — credentials are saved to `~/.config/asana-cli/config.json` and tokens refresh automatically.
 
 ```bash
 asana-cli auth login --client-id "your-client-id" --client-secret "your-client-secret"
 ```
 
 This opens your browser for Asana authorization. Each team member runs this with the same client ID/secret but authorizes with their own Asana account.
-
-After the first login, just run:
-
-```bash
-asana-cli auth login
-```
 
 Verify it worked:
 
