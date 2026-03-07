@@ -35,10 +35,7 @@ var projectCreateCmd = &cobra.Command{
 		projectsAPI := api.NewProjectsAPI(apiClient)
 		project, err := projectsAPI.Create(req)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(project, "Project created successfully")
 	},
@@ -52,10 +49,7 @@ var projectGetCmd = &cobra.Command{
 		projectsAPI := api.NewProjectsAPI(apiClient)
 		project, err := projectsAPI.Get(args[0])
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(project, "")
 	},
@@ -77,10 +71,7 @@ var projectListCmd = &cobra.Command{
 		projectsAPI := api.NewProjectsAPI(apiClient)
 		projects, err := projectsAPI.List(workspaceID, team, archived)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(projects, "")
 	},
@@ -108,10 +99,7 @@ var projectUpdateCmd = &cobra.Command{
 		projectsAPI := api.NewProjectsAPI(apiClient)
 		project, err := projectsAPI.Update(args[0], req)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(project, "Project updated successfully")
 	},
@@ -125,10 +113,7 @@ var projectDeleteCmd = &cobra.Command{
 		projectsAPI := api.NewProjectsAPI(apiClient)
 		err := projectsAPI.Delete(args[0])
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(nil, "Project deleted successfully")
 	},

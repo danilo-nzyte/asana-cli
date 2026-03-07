@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/danilodrobac/asana-cli/internal/api"
 	"github.com/danilodrobac/asana-cli/internal/client"
@@ -53,10 +54,7 @@ var taskCreateCmd = &cobra.Command{
 		tasksAPI := api.NewTasksAPI(apiClient)
 		task, err := tasksAPI.Create(req)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(task, "Task created successfully")
 	},
@@ -70,10 +68,7 @@ var taskGetCmd = &cobra.Command{
 		tasksAPI := api.NewTasksAPI(apiClient)
 		task, err := tasksAPI.Get(args[0])
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(task, "")
 	},
@@ -94,12 +89,9 @@ var taskListCmd = &cobra.Command{
 		}
 
 		tasksAPI := api.NewTasksAPI(apiClient)
-		tasks, err := tasksAPI.List(project, completed, assignee)
+		tasks, err := tasksAPI.List(project, completed, assignee, "")
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(tasks, "")
 	},
@@ -135,10 +127,7 @@ var taskUpdateCmd = &cobra.Command{
 		tasksAPI := api.NewTasksAPI(apiClient)
 		task, err := tasksAPI.Update(args[0], req)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(task, "Task updated successfully")
 	},
@@ -152,10 +141,7 @@ var taskDeleteCmd = &cobra.Command{
 		tasksAPI := api.NewTasksAPI(apiClient)
 		err := tasksAPI.Delete(args[0])
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(nil, "Task deleted successfully")
 	},
@@ -174,14 +160,95 @@ var taskSearchCmd = &cobra.Command{
 		}
 
 		tasksAPI := api.NewTasksAPI(apiClient)
-		tasks, err := tasksAPI.Search(workspaceID, query, project, assignee)
+		tasks, err := tasksAPI.Search(workspaceID, query, project, assignee, "")
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(tasks, "")
+	},
+}
+
+var taskMyTasksCmd = &cobra.Command{
+	Use:   "my-tasks",
+	Short: "List my incomplete tasks sorted by due date",
+	Run: func(cmd *cobra.Command, args []string) {
+		assignee, _ := cmd.Flags().GetString("assignee")
+		if assignee == "" {
+			assignee = assigneeID
+		}
+		project, _ := cmd.Flags().GetString("project")
+
+		if assignee == "" {
+			output.Fail("validation", "--assignee or ASANA_ASSIGNEE_ID is required", client.ExitUsageError)
+		}
+		if workspaceID == "" {
+			output.Fail("validation", "--workspace or ASANA_WORKSPACE_ID is required", client.ExitUsageError)
+		}
+
+		optFields := "name,notes,due_on,assignee.name,projects.name,memberships.section.name,custom_fields,completed,modified_at,created_at"
+
+		tasksAPI := api.NewTasksAPI(apiClient)
+		tasks, err := tasksAPI.MyTasks(workspaceID, assignee, project, optFields)
+		if err != nil {
+			handleAPIError(err)
+		}
+		output.Success(tasks, "")
+	},
+}
+
+var taskAddContextCmd = &cobra.Command{
+	Use:   "add-context [GID]",
+	Short: "Add a session context comment to a task",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		text, _ := cmd.Flags().GetString("text")
+		if text == "" {
+			output.Fail("validation", "--text is required", client.ExitUsageError)
+		}
+
+		commentsAPI := api.NewCommentsAPI(apiClient)
+		comment, err := commentsAPI.Create(args[0], &models.CommentCreateRequest{
+			Text: "[Session Context] " + text,
+		})
+		if err != nil {
+			handleAPIError(err)
+		}
+		output.Success(comment, "Context added successfully")
+	},
+}
+
+var taskHandoffCmd = &cobra.Command{
+	Use:   "handoff [GID]",
+	Short: "Reassign a task and add a handoff comment",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		to, _ := cmd.Flags().GetString("to")
+		message, _ := cmd.Flags().GetString("message")
+
+		if to == "" {
+			output.Fail("validation", "--to is required", client.ExitUsageError)
+		}
+		if message == "" {
+			output.Fail("validation", "--message is required", client.ExitUsageError)
+		}
+
+		tasksAPI := api.NewTasksAPI(apiClient)
+		task, err := tasksAPI.Update(args[0], &models.TaskUpdateRequest{
+			Assignee: &to,
+		})
+		if err != nil {
+			handleAPIError(err)
+		}
+
+		commentsAPI := api.NewCommentsAPI(apiClient)
+		_, err = commentsAPI.Create(args[0], &models.CommentCreateRequest{
+			Text: "[Handoff] " + message,
+		})
+		if err != nil {
+			fmt.Printf("Warning: task was reassigned but comment failed: %v\n", err)
+		}
+
+		output.Success(task, "Task handed off successfully")
 	},
 }
 
@@ -207,11 +274,22 @@ func init() {
 	taskSearchCmd.Flags().String("project", "", "Filter by project GID")
 	taskSearchCmd.Flags().String("assignee", "", "Filter by assignee")
 
+	taskMyTasksCmd.Flags().String("assignee", "", "Assignee GID (default: ASANA_ASSIGNEE_ID env var)")
+	taskMyTasksCmd.Flags().String("project", "", "Filter by project GID")
+
+	taskAddContextCmd.Flags().String("text", "", "Context text to add (required)")
+
+	taskHandoffCmd.Flags().String("to", "", "Assignee GID to hand off to (required)")
+	taskHandoffCmd.Flags().String("message", "", "Handoff message (required)")
+
 	taskCmd.AddCommand(taskCreateCmd)
 	taskCmd.AddCommand(taskGetCmd)
 	taskCmd.AddCommand(taskListCmd)
 	taskCmd.AddCommand(taskUpdateCmd)
 	taskCmd.AddCommand(taskDeleteCmd)
 	taskCmd.AddCommand(taskSearchCmd)
+	taskCmd.AddCommand(taskMyTasksCmd)
+	taskCmd.AddCommand(taskAddContextCmd)
+	taskCmd.AddCommand(taskHandoffCmd)
 	rootCmd.AddCommand(taskCmd)
 }

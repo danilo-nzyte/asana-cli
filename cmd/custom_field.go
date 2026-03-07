@@ -50,10 +50,7 @@ var customFieldCreateCmd = &cobra.Command{
 		cfAPI := api.NewCustomFieldsAPI(apiClient)
 		cf, err := cfAPI.Create(req)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(cf, "Custom field created successfully")
 	},
@@ -67,10 +64,7 @@ var customFieldGetCmd = &cobra.Command{
 		cfAPI := api.NewCustomFieldsAPI(apiClient)
 		cf, err := cfAPI.Get(args[0])
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(cf, "")
 	},
@@ -87,10 +81,7 @@ var customFieldListCmd = &cobra.Command{
 		cfAPI := api.NewCustomFieldsAPI(apiClient)
 		cfs, err := cfAPI.List(workspaceID)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(cfs, "")
 	},
@@ -110,10 +101,7 @@ var customFieldUpdateCmd = &cobra.Command{
 		cfAPI := api.NewCustomFieldsAPI(apiClient)
 		cf, err := cfAPI.Update(args[0], req)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(cf, "Custom field updated successfully")
 	},
@@ -127,10 +115,7 @@ var customFieldDeleteCmd = &cobra.Command{
 		cfAPI := api.NewCustomFieldsAPI(apiClient)
 		err := cfAPI.Delete(args[0])
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(nil, "Custom field deleted successfully")
 	},

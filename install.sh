@@ -4,6 +4,7 @@ set -euo pipefail
 REPO="danilo-nzyte/asana-cli"
 INSTALL_DIR="/usr/local/bin"
 SKILL_DIR="$HOME/.claude/skills/asana"
+WORK_QUEUE_SKILL_DIR="$HOME/.claude/skills/work-queue"
 
 # Detect OS and architecture
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
@@ -57,12 +58,17 @@ else
 fi
 chmod +x "$INSTALL_DIR/asana-cli"
 
-# Install Claude Code skill
-echo "==> Installing Claude Code skill..."
+# Install Claude Code skills
+echo "==> Installing Claude Code skills..."
 mkdir -p "$SKILL_DIR"
 SKILL_URL="https://raw.githubusercontent.com/${REPO}/${TAG}/skill/SKILL.md"
 curl -sSfL "$SKILL_URL" -o "$SKILL_DIR/SKILL.md"
-echo "    Skill installed to $SKILL_DIR"
+echo "    Asana skill installed to $SKILL_DIR"
+
+mkdir -p "$WORK_QUEUE_SKILL_DIR"
+WQ_SKILL_URL="https://raw.githubusercontent.com/${REPO}/${TAG}/skill/WORK-QUEUE.md"
+curl -sSfL "$WQ_SKILL_URL" -o "$WORK_QUEUE_SKILL_DIR/SKILL.md"
+echo "    Work queue skill installed to $WORK_QUEUE_SKILL_DIR"
 
 echo ""
 echo "==> Installed asana-cli $TAG to $INSTALL_DIR/asana-cli"
@@ -72,5 +78,13 @@ echo "  1. Run: asana-cli auth login --client-id <ID> --client-secret <SECRET>"
 echo "     (credentials are saved — you only need to provide them once)"
 echo "  2. Verify: asana-cli auth status"
 echo "  3. Set ASANA_WORKSPACE_ID in your shell config (needed for search/list commands)"
+
+if [ ! -f "$HOME/.claude/work-queue-vars.yaml" ]; then
+    echo ""
+    echo "  Work Queue setup:"
+    echo "    The work queue skill is installed. Say \"what's next?\" in Claude Code"
+    echo "    and it will guide you through first-time configuration."
+fi
+
 echo ""
 echo "See https://github.com/${REPO}#authentication-setup for details."

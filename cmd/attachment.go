@@ -29,10 +29,7 @@ var attachmentUploadCmd = &cobra.Command{
 		attachAPI := api.NewAttachmentsAPI(apiClient)
 		attachment, err := attachAPI.Upload(task, file)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(attachment, "Attachment uploaded successfully")
 	},
@@ -46,10 +43,7 @@ var attachmentGetCmd = &cobra.Command{
 		attachAPI := api.NewAttachmentsAPI(apiClient)
 		attachment, err := attachAPI.Get(args[0])
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(attachment, "")
 	},
@@ -67,10 +61,7 @@ var attachmentListCmd = &cobra.Command{
 		attachAPI := api.NewAttachmentsAPI(apiClient)
 		attachments, err := attachAPI.List(task)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(attachments, "")
 	},
@@ -84,10 +75,7 @@ var attachmentDeleteCmd = &cobra.Command{
 		attachAPI := api.NewAttachmentsAPI(apiClient)
 		err := attachAPI.Delete(args[0])
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(nil, "Attachment deleted successfully")
 	},

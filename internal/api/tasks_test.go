@@ -85,12 +85,31 @@ func TestTasksAPI_List(t *testing.T) {
 	defer server.Close()
 
 	api := NewTasksAPI(c)
-	tasks, err := api.List("proj123", nil, "")
+	tasks, err := api.List("proj123", nil, "", "")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if len(tasks) != 3 {
 		t.Fatalf("expected 3 tasks, got %d", len(tasks))
+	}
+}
+
+func TestTasksAPI_List_OptFields(t *testing.T) {
+	c, server := newTestServer(func(w http.ResponseWriter, r *http.Request) {
+		optFields := r.URL.Query().Get("opt_fields")
+		if optFields != "name,due_on" {
+			t.Errorf("expected opt_fields='name,due_on', got %q", optFields)
+		}
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"data": []map[string]interface{}{},
+		})
+	})
+	defer server.Close()
+
+	api := NewTasksAPI(c)
+	_, err := api.List("proj123", nil, "", "name,due_on")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }
 
@@ -112,7 +131,7 @@ func TestTasksAPI_Search(t *testing.T) {
 	defer server.Close()
 
 	api := NewTasksAPI(c)
-	tasks, err := api.Search("ws123", "bug fix", "", "")
+	tasks, err := api.Search("ws123", "bug fix", "", "", "")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -121,6 +140,25 @@ func TestTasksAPI_Search(t *testing.T) {
 	}
 	if tasks[0].Name != "Fix login bug" {
 		t.Errorf("expected 'Fix login bug', got %q", tasks[0].Name)
+	}
+}
+
+func TestTasksAPI_Search_OptFields(t *testing.T) {
+	c, server := newTestServer(func(w http.ResponseWriter, r *http.Request) {
+		optFields := r.URL.Query().Get("opt_fields")
+		if optFields != "name,notes" {
+			t.Errorf("expected opt_fields='name,notes', got %q", optFields)
+		}
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"data": []map[string]interface{}{},
+		})
+	})
+	defer server.Close()
+
+	api := NewTasksAPI(c)
+	_, err := api.Search("ws123", "", "", "", "name,notes")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }
 
@@ -136,6 +174,87 @@ func TestTasksAPI_Delete(t *testing.T) {
 
 	api := NewTasksAPI(c)
 	if err := api.Delete("99999"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestTasksAPI_MyTasks(t *testing.T) {
+	c, server := newTestServer(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/workspaces/ws123/tasks/search" {
+			t.Errorf("expected /workspaces/ws123/tasks/search, got %s", r.URL.Path)
+		}
+		q := r.URL.Query()
+		if q.Get("assignee.any") != "user123" {
+			t.Errorf("expected assignee.any=user123, got %q", q.Get("assignee.any"))
+		}
+		if q.Get("is_subtask") != "false" {
+			t.Errorf("expected is_subtask=false, got %q", q.Get("is_subtask"))
+		}
+		if q.Get("completed") != "false" {
+			t.Errorf("expected completed=false, got %q", q.Get("completed"))
+		}
+		if q.Get("sort_by") != "due_on" {
+			t.Errorf("expected sort_by=due_on, got %q", q.Get("sort_by"))
+		}
+		if q.Get("sort_ascending") != "true" {
+			t.Errorf("expected sort_ascending=true, got %q", q.Get("sort_ascending"))
+		}
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"data": []map[string]interface{}{
+				{"gid": "1", "name": "Task 1", "due_on": "2026-03-01"},
+				{"gid": "2", "name": "Task 2", "due_on": "2026-03-05"},
+			},
+		})
+	})
+	defer server.Close()
+
+	api := NewTasksAPI(c)
+	tasks, err := api.MyTasks("ws123", "user123", "", "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(tasks) != 2 {
+		t.Fatalf("expected 2 tasks, got %d", len(tasks))
+	}
+}
+
+func TestTasksAPI_MyTasks_WithProject(t *testing.T) {
+	c, server := newTestServer(func(w http.ResponseWriter, r *http.Request) {
+		q := r.URL.Query()
+		if q.Get("projects.any") != "proj456" {
+			t.Errorf("expected projects.any=proj456, got %q", q.Get("projects.any"))
+		}
+		if q.Get("assignee.any") != "user123" {
+			t.Errorf("expected assignee.any=user123, got %q", q.Get("assignee.any"))
+		}
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"data": []map[string]interface{}{},
+		})
+	})
+	defer server.Close()
+
+	api := NewTasksAPI(c)
+	_, err := api.MyTasks("ws123", "user123", "proj456", "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestTasksAPI_MyTasks_OptFields(t *testing.T) {
+	c, server := newTestServer(func(w http.ResponseWriter, r *http.Request) {
+		optFields := r.URL.Query().Get("opt_fields")
+		if optFields != "name,due_on,notes" {
+			t.Errorf("expected opt_fields='name,due_on,notes', got %q", optFields)
+		}
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"data": []map[string]interface{}{},
+		})
+	})
+	defer server.Close()
+
+	api := NewTasksAPI(c)
+	_, err := api.MyTasks("ws123", "user123", "", "name,due_on,notes")
+	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

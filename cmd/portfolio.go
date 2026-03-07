@@ -36,10 +36,7 @@ var portfolioCreateCmd = &cobra.Command{
 		portfoliosAPI := api.NewPortfoliosAPI(apiClient)
 		portfolio, err := portfoliosAPI.Create(req)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(portfolio, "Portfolio created successfully")
 	},
@@ -53,10 +50,7 @@ var portfolioGetCmd = &cobra.Command{
 		portfoliosAPI := api.NewPortfoliosAPI(apiClient)
 		portfolio, err := portfoliosAPI.Get(args[0])
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(portfolio, "")
 	},
@@ -71,10 +65,7 @@ var portfolioListCmd = &cobra.Command{
 		portfoliosAPI := api.NewPortfoliosAPI(apiClient)
 		portfolios, err := portfoliosAPI.List(workspaceID, owner)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(portfolios, "")
 	},
@@ -98,10 +89,7 @@ var portfolioUpdateCmd = &cobra.Command{
 		portfoliosAPI := api.NewPortfoliosAPI(apiClient)
 		portfolio, err := portfoliosAPI.Update(args[0], req)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(portfolio, "Portfolio updated successfully")
 	},
@@ -115,10 +103,7 @@ var portfolioDeleteCmd = &cobra.Command{
 		portfoliosAPI := api.NewPortfoliosAPI(apiClient)
 		err := portfoliosAPI.Delete(args[0])
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(nil, "Portfolio deleted successfully")
 	},
@@ -137,10 +122,7 @@ var portfolioAddItemCmd = &cobra.Command{
 		portfoliosAPI := api.NewPortfoliosAPI(apiClient)
 		err := portfoliosAPI.AddItem(args[0], item)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(nil, "Item added to portfolio")
 	},
@@ -159,10 +141,7 @@ var portfolioRemoveItemCmd = &cobra.Command{
 		portfoliosAPI := api.NewPortfoliosAPI(apiClient)
 		err := portfoliosAPI.RemoveItem(args[0], item)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(nil, "Item removed from portfolio")
 	},

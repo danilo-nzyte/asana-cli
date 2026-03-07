@@ -30,10 +30,7 @@ var sectionCreateCmd = &cobra.Command{
 		sectionsAPI := api.NewSectionsAPI(apiClient)
 		section, err := sectionsAPI.Create(project, &models.SectionCreateRequest{Name: name})
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(section, "Section created successfully")
 	},
@@ -47,10 +44,7 @@ var sectionGetCmd = &cobra.Command{
 		sectionsAPI := api.NewSectionsAPI(apiClient)
 		section, err := sectionsAPI.Get(args[0])
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(section, "")
 	},
@@ -68,10 +62,7 @@ var sectionListCmd = &cobra.Command{
 		sectionsAPI := api.NewSectionsAPI(apiClient)
 		sections, err := sectionsAPI.List(project)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(sections, "")
 	},
@@ -91,10 +82,7 @@ var sectionUpdateCmd = &cobra.Command{
 		sectionsAPI := api.NewSectionsAPI(apiClient)
 		section, err := sectionsAPI.Update(args[0], req)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(section, "Section updated successfully")
 	},
@@ -108,10 +96,7 @@ var sectionDeleteCmd = &cobra.Command{
 		sectionsAPI := api.NewSectionsAPI(apiClient)
 		err := sectionsAPI.Delete(args[0])
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(nil, "Section deleted successfully")
 	},
@@ -134,10 +119,7 @@ var sectionAddTaskCmd = &cobra.Command{
 		sectionsAPI := api.NewSectionsAPI(apiClient)
 		err := sectionsAPI.AddTask(section, task)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(nil, "Task added to section successfully")
 	},

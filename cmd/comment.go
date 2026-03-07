@@ -30,10 +30,7 @@ var commentCreateCmd = &cobra.Command{
 		commentsAPI := api.NewCommentsAPI(apiClient)
 		comment, err := commentsAPI.Create(task, &models.CommentCreateRequest{Text: text})
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(comment, "Comment created successfully")
 	},
@@ -47,10 +44,7 @@ var commentGetCmd = &cobra.Command{
 		commentsAPI := api.NewCommentsAPI(apiClient)
 		comment, err := commentsAPI.Get(args[0])
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(comment, "")
 	},
@@ -68,10 +62,7 @@ var commentListCmd = &cobra.Command{
 		commentsAPI := api.NewCommentsAPI(apiClient)
 		comments, err := commentsAPI.List(task)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(comments, "")
 	},
@@ -91,10 +82,7 @@ var commentUpdateCmd = &cobra.Command{
 		commentsAPI := api.NewCommentsAPI(apiClient)
 		comment, err := commentsAPI.Update(args[0], req)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(comment, "Comment updated successfully")
 	},
@@ -108,10 +96,7 @@ var commentDeleteCmd = &cobra.Command{
 		commentsAPI := api.NewCommentsAPI(apiClient)
 		err := commentsAPI.Delete(args[0])
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(nil, "Comment deleted successfully")
 	},

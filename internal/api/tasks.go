@@ -46,7 +46,8 @@ func (a *TasksAPI) Get(gid string) (*models.Task, error) {
 }
 
 // List returns tasks for a project, optionally filtered.
-func (a *TasksAPI) List(project string, completed *bool, assignee string) ([]models.Task, error) {
+// Pass optFields="" to use Asana defaults.
+func (a *TasksAPI) List(project string, completed *bool, assignee string, optFields string) ([]models.Task, error) {
 	params := url.Values{}
 	if project != "" {
 		params.Set("project", project)
@@ -59,6 +60,9 @@ func (a *TasksAPI) List(project string, completed *bool, assignee string) ([]mod
 	}
 	if assignee != "" {
 		params.Set("assignee", assignee)
+	}
+	if optFields != "" {
+		params.Set("opt_fields", optFields)
 	}
 
 	path := "/tasks"
@@ -97,7 +101,8 @@ func (a *TasksAPI) Delete(gid string) error {
 }
 
 // Search searches for tasks in a workspace.
-func (a *TasksAPI) Search(workspace string, query string, project string, assignee string) ([]models.Task, error) {
+// Pass optFields="" to use Asana defaults.
+func (a *TasksAPI) Search(workspace string, query string, project string, assignee string, optFields string) ([]models.Task, error) {
 	params := url.Values{}
 	if query != "" {
 		params.Set("text", query)
@@ -108,11 +113,42 @@ func (a *TasksAPI) Search(workspace string, query string, project string, assign
 	if assignee != "" {
 		params.Set("assignee.any", assignee)
 	}
+	if optFields != "" {
+		params.Set("opt_fields", optFields)
+	}
 
 	path := fmt.Sprintf("/workspaces/%s/tasks/search", workspace)
 	if len(params) > 0 {
 		path += "?" + params.Encode()
 	}
+
+	body, err := a.client.Get(path)
+	if err != nil {
+		return nil, err
+	}
+	var resp models.AsanaListResponse[models.Task]
+	if err := json.Unmarshal(body, &resp); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+	return resp.Data, nil
+}
+
+// MyTasks returns incomplete tasks assigned to a user, sorted by due date.
+func (a *TasksAPI) MyTasks(workspace, assignee, project, optFields string) ([]models.Task, error) {
+	params := url.Values{}
+	params.Set("assignee.any", assignee)
+	params.Set("is_subtask", "false")
+	params.Set("completed", "false")
+	params.Set("sort_by", "due_on")
+	params.Set("sort_ascending", "true")
+	if project != "" {
+		params.Set("projects.any", project)
+	}
+	if optFields != "" {
+		params.Set("opt_fields", optFields)
+	}
+
+	path := fmt.Sprintf("/workspaces/%s/tasks/search?%s", workspace, params.Encode())
 
 	body, err := a.client.Get(path)
 	if err != nil {

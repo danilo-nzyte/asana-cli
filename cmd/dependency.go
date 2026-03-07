@@ -29,10 +29,7 @@ var dependencyAddCmd = &cobra.Command{
 		depsAPI := api.NewDependenciesAPI(apiClient)
 		err := depsAPI.Add(task, dependsOn)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(nil, "Dependencies added successfully")
 	},
@@ -55,10 +52,7 @@ var dependencyRemoveCmd = &cobra.Command{
 		depsAPI := api.NewDependenciesAPI(apiClient)
 		err := depsAPI.Remove(task, dependsOn)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(nil, "Dependencies removed successfully")
 	},
@@ -76,10 +70,7 @@ var dependencyListCmd = &cobra.Command{
 		depsAPI := api.NewDependenciesAPI(apiClient)
 		deps, err := depsAPI.List(task)
 		if err != nil {
-			if apiErr, ok := err.(*client.APIError); ok {
-				output.Fail(apiErr.Code, apiErr.Message, apiErr.ExitCode())
-			}
-			output.Fail("unknown", err.Error(), 1)
+			handleAPIError(err)
 		}
 		output.Success(deps, "")
 	},

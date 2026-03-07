@@ -30,3 +30,4 @@ release:
     name: asana-cli
   extra_files:
     - glob: skill/SKILL.md
+    - glob: skill/WORK-QUEUE.md

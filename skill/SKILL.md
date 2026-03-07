@@ -47,6 +47,9 @@ asana-cli task list --project GID [--assignee GID] [--completed]
 asana-cli task update GID [--name "..."] [--notes "..."] [--completed] [--due-on YYYY-MM-DD] [--assignee GID]
 asana-cli task delete GID
 asana-cli task search --query "text" [--project GID] [--assignee GID]   # requires ASANA_WORKSPACE_ID
+asana-cli task my-tasks --assignee GID [--project GID]                 # requires ASANA_WORKSPACE_ID; returns rich data (notes, due dates, sections, custom fields)
+asana-cli task add-context GID --text "session notes..."               # adds [Session Context] prefixed comment
+asana-cli task handoff GID --to ASSIGNEE_GID --message "context"       # reassigns + adds [Handoff] prefixed comment
 ```
 
 ### Portfolios
@@ -121,5 +124,6 @@ asana-cli attachment upload --task GID --file ./design.pdf
 - Dates use YYYY-MM-DD format
 - "ticket" = "task" in Asana terminology
 - Use `jq` to extract GIDs from responses: `| jq -r '.data.gid'`
-- The `--workspace` flag or `ASANA_WORKSPACE_ID` env var is required for: task search, custom-field list, portfolio create, custom-field create
+- The `--workspace` flag or `ASANA_WORKSPACE_ID` env var is required for: task search, task my-tasks, custom-field list, portfolio create, custom-field create
+- `ASANA_ASSIGNEE_ID` env var can be set as a default for `--assignee` in `task my-tasks`
 - Exit codes: 0=success, 1=auth error, 2=not found, 3=validation, 4=rate limited, 5=server error, 10=usage error

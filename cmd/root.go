@@ -14,6 +14,7 @@ var Version = "dev"
 var (
 	apiClient   *client.Client
 	workspaceID string
+	assigneeID  string
 )
 
 var rootCmd = &cobra.Command{
@@ -33,6 +34,9 @@ var rootCmd = &cobra.Command{
 
 		if workspaceID == "" {
 			workspaceID = os.Getenv("ASANA_WORKSPACE_ID")
+		}
+		if assigneeID == "" {
+			assigneeID = os.Getenv("ASANA_ASSIGNEE_ID")
 		}
 	},
 }
