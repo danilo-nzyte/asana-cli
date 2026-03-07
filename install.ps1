@@ -3,6 +3,7 @@ $ErrorActionPreference = "Stop"
 $Repo = "danilo-nzyte/asana-cli"
 $InstallDir = "$HOME\.local\bin"
 $SkillDir = "$HOME\.claude\skills\asana"
+$WorkQueueSkillDir = "$HOME\.claude\skills\work-queue"
 
 # Detect architecture
 $Arch = if ([Environment]::Is64BitOperatingSystem) {
@@ -47,12 +48,17 @@ if ($UserPath -notlike "*$InstallDir*") {
     $env:Path = "$env:Path;$InstallDir"
 }
 
-# Install Claude Code skill
-Write-Host "==> Installing Claude Code skill..."
+# Install Claude Code skills
+Write-Host "==> Installing Claude Code skills..."
 New-Item -ItemType Directory -Path $SkillDir -Force | Out-Null
 $SkillUrl = "https://raw.githubusercontent.com/$Repo/$Tag/skill/SKILL.md"
 Invoke-WebRequest -Uri $SkillUrl -OutFile (Join-Path $SkillDir "SKILL.md")
-Write-Host "    Skill installed to $SkillDir"
+Write-Host "    Asana skill installed to $SkillDir"
+
+New-Item -ItemType Directory -Path $WorkQueueSkillDir -Force | Out-Null
+$WqSkillUrl = "https://raw.githubusercontent.com/$Repo/$Tag/skill/WORK-QUEUE.md"
+Invoke-WebRequest -Uri $WqSkillUrl -OutFile (Join-Path $WorkQueueSkillDir "SKILL.md")
+Write-Host "    Work queue skill installed to $WorkQueueSkillDir"
 
 # Cleanup
 Remove-Item -Recurse -Force $TmpDir
@@ -66,5 +72,13 @@ Write-Host "  2. Run: asana-cli auth login --client-id <ID> --client-secret <SEC
 Write-Host "     (credentials are saved - you only need to provide them once)"
 Write-Host "  3. Verify: asana-cli auth status"
 Write-Host "  4. Set ASANA_WORKSPACE_ID (see README for details)"
+Write-Host ""
+if (-not (Test-Path "$HOME\.claude\work-queue-vars.yaml")) {
+    Write-Host ""
+    Write-Host "  Work Queue setup:"
+    Write-Host "    The work queue skill is installed. Say `"what's next?`" in Claude Code"
+    Write-Host "    and it will guide you through first-time configuration."
+}
+
 Write-Host ""
 Write-Host "See https://github.com/$Repo#authentication-setup for details."
