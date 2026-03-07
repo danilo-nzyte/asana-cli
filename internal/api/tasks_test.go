@@ -193,8 +193,8 @@ func TestTasksAPI_MyTasks(t *testing.T) {
 		if q.Get("completed") != "false" {
 			t.Errorf("expected completed=false, got %q", q.Get("completed"))
 		}
-		if q.Get("sort_by") != "due_on" {
-			t.Errorf("expected sort_by=due_on, got %q", q.Get("sort_by"))
+		if q.Get("sort_by") != "due_date" {
+			t.Errorf("expected sort_by=due_date, got %q", q.Get("sort_by"))
 		}
 		if q.Get("sort_ascending") != "true" {
 			t.Errorf("expected sort_ascending=true, got %q", q.Get("sort_ascending"))

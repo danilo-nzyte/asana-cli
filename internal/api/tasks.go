@@ -139,7 +139,7 @@ func (a *TasksAPI) MyTasks(workspace, assignee, project, optFields string) ([]mo
 	params.Set("assignee.any", assignee)
 	params.Set("is_subtask", "false")
 	params.Set("completed", "false")
-	params.Set("sort_by", "due_on")
+	params.Set("sort_by", "due_date")
 	params.Set("sort_ascending", "true")
 	if project != "" {
 		params.Set("projects.any", project)
